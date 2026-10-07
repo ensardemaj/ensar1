@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rezultatet</title>
+<style>
+body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#e0f7fa,#fce4ec);display:flex;justify-content:center;padding:40px 20px;}
+.container{box-sizing:border-box;width:100%;max-width:860px;background:white;border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,0.15);padding:30px;text-align:center;}
+h2{font-size:26px;margin-bottom:25px;color:#333;}
+.section{margin-bottom:30px;animation:fadeIn 0.8s ease-in-out;}
+.section h3{background:#6200ea;color:white;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:20px;}
+.totals{font-size:18px;color:#333;font-weight:bold;opacity:0;transform:scale(0.95);animation:fadeInScale 0.8s forwards;}
+.totals .original{display:block;color:green;font-size:16px;margin-top:5px;}
+.back-btn{display:inline-block;margin-top:15px;padding:10px 20px;background:#007bff;color:white;text-decoration:none;border-radius:5px;transition:0.3s;}
+.back-btn:hover{background:#0056b3;transform:scale(1.05);}
+.clear-btn{padding:10px 18px;border:none;cursor:pointer;border-radius:8px;font-size:15px;font-weight:bold;transition:0.3s;background:#dc3545;color:white;}
+.clear-btn:hover{background:#c82333;transform:scale(1.05);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);}}
+@keyframes fadeInScale{to{opacity:1;transform:scale(1);}}
+@media (max-width:600px){
+body{padding:15px 8px;}
+.container{padding:15px;}
+h2{font-size:21px;margin-bottom:18px;}
+.section{margin-bottom:22px;}
+.section h3{font-size:17px;padding:8px 12px;}
+.totals{font-size:15px;}
+.totals .original{font-size:14px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Rezultatet e Skeleve</h2>
+
+<div class="section">
+<h3>Skele e vogël</h3>
+<div class="totals" id="small-results"></div>
+</div>
+
+<div class="section">
+<h3>Skele e madhe</h3>
+<div class="totals" id="medium-results"></div>
+</div>
+
+<div class="section">
+<h3>Skele e trashë</h3>
+<div class="totals" id="large-results"></div>
+</div>
+
+<div class="totals" id="grand-results"></div>
+
+<div><button class="clear-btn" onclick="clearResults()">🧹 Pastro të gjitha</button></div>
+
+<a href="index.html" class="back-btn">⬅ Kthehu mbrapa</a>
+</div>
+
+<script>
+function renderResults(){
+    let qmimiRuajtur = parseFloat(localStorage.getItem("qmimorja"));
+    let qmimi = (!isNaN(qmimiRuajtur) && qmimiRuajtur > 0) ? qmimiRuajtur : 2;
+    let allSaved = JSON.parse(localStorage.getItem("allSavedTables") || "[]");
+    let grandTotals={small:0, medium:0, large:0};
+    let pagesTotals={small:0, medium:0, large:0};
+    let qmimet = new Set();
+
+    allSaved.forEach(tableSet=>{
+        // çmimi me të cilin u ruajt (ruajtjet e vjetra pa çmim përdorin çmimin aktual)
+        let p = parseFloat(tableSet.qmimi);
+        if(isNaN(p) || p <= 0) p = qmimi;
+        qmimet.add(p);
+        ["small","medium","large"].forEach(key=>{
+            if(tableSet[key]){
+                tableSet[key].forEach(v=>{
+                    let num = parseFloat(v);
+                    if(!isNaN(num)){
+                        grandTotals[key] += num;
+                        pagesTotals[key] += num * p;
+                    }
+                });
+            }
+        });
+    });
+    let shenja = "";
+
+    document.getElementById("small-results").innerHTML=
+        `<span>Totali për pages${shenja}: ${pagesTotals.small.toFixed(2)}€</span>
+         <span class="original">Shuma e skeleve: ${grandTotals.small.toFixed(2)}</span>`;
+
+    document.getElementById("medium-results").innerHTML=
+        `<span>Totali për pages${shenja}: ${pagesTotals.medium.toFixed(2)}€</span>
+         <span class="original">Shuma e skeleve: ${grandTotals.medium.toFixed(2)}</span>`;
+
+    document.getElementById("large-results").innerHTML=
+        `<span>Totali për pages${shenja}: ${pagesTotals.large.toFixed(2)}€</span>
+         <span class="original">Shuma e skeleve: ${grandTotals.large.toFixed(2)}</span>`;
+
+    const totalGrand = grandTotals.small + grandTotals.medium + grandTotals.large;
+    document.getElementById("grand-results").innerHTML=
+        `<span>Totali i përgjithshëm${shenja}: ${(pagesTotals.small + pagesTotals.medium + pagesTotals.large).toFixed(2)}€</span>
+         <span class="original">Totali i të gjitha skeleve: ${totalGrand.toFixed(2)}</span>`;
+}
+
+function clearResults(){
+    if(confirm("A je i sigurt që do të pastrosh të gjitha rezultatet e ruajtura?")){
+        localStorage.removeItem("allSavedTables");
+        localStorage.removeItem("savedPermanentTables");
+        renderResults();
+    }
+}
+
+renderResults();
+</script>
+</body>
+</html>
